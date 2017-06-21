@@ -1,0 +1,42 @@
+With all the files in the directory, open PVM.html in Google Chrome to play the game.
+Note the game currently only works well in Google Chrome in the Windows Operating System.
+
+This is a Player vs. Monster Javascript game based on the MMORPG Runescape. Your goal is 
+to obtain as many Kill Points as you can while keeping Foods eaten, Refills, and Deaths as 
+low as you can. These scores can be seen on the top left corner. Monsters' information
+can also be accessed by pressing INFO in the top left corner. There are 10 different 
+monsters in total.
+
+On the top right corner, the number in the red square represents "Health point" and the 
+number in the blue square represents "Prayer point". The Refill food button refills
+the food you see in your inventory. Lastly, the numbers 0 1 2 3 4 5 6 7 X Y Z represents
+the different monsters you can select to fight. The higher the number, the more difficult 
+the monster is. Monsters under the X Y Z selection are monsters with special abilities 
+and special rewards. The monster named Tz-tok Jad (number 3) also has 3 different modes of
+difficulty you can select in the top left corner.
+
+As of right now, the only working icons are the backpack icon (selected in red) for 
+"Inventory", the star icon for "Prayer", and and the harp icon for "Music". The
+Inventory can also be accessed by pressing 1 and the Prayer can also be accessed 
+by pressing 3.
+
+Inventory:
+You can switch between your Archer and Warrior set-up by pressing the item stack in the top
+left corner of the inventory. The Archer set-up allows you hit rapidly with a max damage
+of 30. The Warrior set-up allows you to hit slowly but with a max damage of 50-99. With 
+the Warrior set-up, the higher your health is, the lower your max damage is and vice versa. 
+The star food heals 18 health points and the fish heals 20 health points. The star food can 
+be eaten quickly but the fish can only be eaten again after a delay from eating it earlier.
+
+Prayer:
+Out of the two active prayers you can use, you can use Protect from Magic (left) to
+block magic attacks or Protect from Missiles (right) to block projectile attacks.
+Be careful not to let your Prayer point drain to 0 or else you can't use prayers anymore! 
+After a fight is over, your Prayer point will be restored to the full 40 again.
+
+Music:
+You can toggle the music player on and off. Each monster has a different music; changing
+to a different monster means you have to press play again to listen to the music.
+
+Press the red FIGHT button and click on the monster to attack. As soon as that FIGHT button
+turns green, you will be attacked mercilessly. Good luck, fierce fighter.

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<link rel="shortcut icon" type="image/png" href="images/icon.png"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=1.00, user-scalable=no" />
+<html>
+<style type="text/css">
+@import url("PVM.css");
+</style>
+<body onload="setmonster('ogre');">
+<script src="jquery-1.9.0.js">
+</script>
+<script src="Monsters.js">
+</script>
+<script src="JadAndPrayers.js">
+</script>
+<script src="OtherGuy.js">
+</script>
+<script>
+/*Changes for pvm are commented or files renamed with "pvm", no matter what the program language*/
+/*This was originally for pvp, but some subtle changes made it into pvm*/
+/*Many/gif names have been find-replaced*/
+
+function weaponswitch1()
+{
+ if (notfrozen) {
+	element1=document.getElementById("2h1");
+	element2=document.getElementById("player1");
+	$(element1).css({"opacity": "0.3"});
+	setTimeout(function () 
+		{
+		 $(element1).css({"opacity": "1"});
+		}, 200);
+	if (element1.src.match("images/dharoks.png"))
+	 {
+	  document.getElementById("player2").removeAttribute("onclick"); //scim to 2h switch makes the player wait a bit before reattacking to prevent wrong style
+	  setTimeout(function(){ 
+		if (allowattack) $('#player2').attr( "onclick", "attack1()" );
+		},500);
+	  setTimeout(function () 
+		{
+		 element1.src="images/karils.png";
+		}, 500);
+	  setTimeout(function () 
+		{
+		  element2.src="gifs/meleestand.gif";
+		}, 500);
+	  stopdmg1();	
+	  }
+	else if (element1.src.match("images/karils.png"))
+	  { 	
+	  document.getElementById("player2").removeAttribute("onclick"); //2h to scim switch makes the player wait at 2h speed before reattacking
+	  setTimeout(function(){ 
+		if (allowattack) $('#player2').attr( "onclick", "attack1()" );
+		},3000);
+	  setTimeout(function () 
+		{
+		 element1.src="images/dharoks.png";  
+		}, 500);
+		 setTimeout(function () 
+		{
+		 element2.src="gifs/rangestand.gif";
+		}, 500);		
+	   stopdmg1();
+	  }
+ }
+}
+
+function stopatk1() 
+{
+document.getElementById("game").removeAttribute("onclick");//Helps to avoid spamclicking errors when "attack" is mixed with "stop"
+element1=document.getElementById("player1");
+if (element1.src.match("gifs/rangeatk.gif") || element1.src.match("gifs/rangestand.gif"))
+  {
+  setTimeout(function () 
+    {
+     element1.src="gifs/rangestand.gif";
+    }, 500);
+  }
+else if (element1.src.match("gifs/meleestand.gif") || element1.src.match("gifs/meleeatk.gif"))
+  { 
+  setTimeout(function () 
+    {
+     element1.src="gifs/meleestand.gif";
+    }, 500);
+  }
+}
+
+function attack1()
+{
+ element1=document.getElementById("player1");
+ if (monsterAbbreviation == "brid" && element1.src.match("gifs/meleestand.gif")) return;
+ if (notfrozen) { //If I don't set cacoon condition here, I may bypass it if I simply remove onclick attribute for monster
+	$("#selectmonster").css({"visibility": "hidden"});
+	//$('#game').attr( "onclick", "stopatk1();stopdmg1();" ); //MOB ONLY PROBLEM - Due to problem with attack2 with event 
+															   //parameter, it's better to disable all clicking background
+	if (hp2 != 0) //Prevents additional action if hp2 is 0
+	{
+	/*document.getElementById("player2").style.cursor="crosshair"; //The cursor will become a cross for 0.2 seconds to show that this function 
+	setTimeout(function ()                                         //is activated. If this is used to check if setdmg2 function is about to be activated
+	  {                                                            //then it might cause cause an error that stops the displays the attack animation
+	  document.getElementById("player2").style.cursor="auto";
+	  }, 200)*/
+	element2=document.getElementById("player1");
+		if (element2.src.match("gifs/meleestand.gif")) //stand2h must go first for the attack to work after the 2h switch
+		{ //2h interval timer
+		 element2.src="gifs/meleeatk.gif"; //If a setTimeout is applied to the 2h animation to make koing slower, it will cause PROBLEM 1
+		 firstdmg2 = self.setTimeout(function(){
+		 //setdmg2(31); 
+		 dharokdmg = 50+Math.floor((100-hp1)/2);
+		 setdmg2(dharokdmg);
+		 clearTimeout(firstdmg2);
+		 document.getElementById("player2").removeAttribute("onclick");
+		 
+		 clearTimeout(firstdmg2);
+		 //dmg2 = self.setInterval("setdmg2(31)",4300);	 
+		 
+		 dmg2 = self.setInterval("setdmg2(dharokdmg)",3000);	
+		 },1700);  
+		 setTimeout(function () 
+		 {     
+		 if (allowattack) $('#player2').attr( "onclick", "attack1()" );
+		 },1700); //Enabling the attack1() function before the first hit causes the second 2h hit and onward to stop
+		}
+		else if (element2.src.match("gifs/rangestand.gif"))
+		{ //scim interval timer
+		 element2.src="gifs/rangeatk.gif";
+		 firstdmg2 = self.setTimeout(function(){
+		 //setdmg2(25); 
+		 setdmg2(30);
+		 clearTimeout(firstdmg2);//A solution to PROBLEM 1, unfortunately it's not foolproof
+		 document.getElementById("player2").removeAttribute("onclick");//A solution to PROBLEM 1, unfortunately it's not foolproof
+		 clearTimeout(firstdmg2);//A solution to PROBLEM 1, unfortunately it's not foolproof
+		 //dmg2 = self.setInterval("setdmg2(25)",3100);	 
+		 dmg2 = self.setInterval("setdmg2(30)",1500);	 
+		 },1700);  
+		 setTimeout(function () 
+		 {     
+		 if (allowattack) $('#player2').attr( "onclick", "attack1()" );
+		 },1700);
+		}
+		else if (element2.src.match("gifs/rangeatk.gif"))//PROBLEM 1 (Possible explanation): Before this can be activated, first 2 conditions must finish executing the timer                                                    
+		{                                                //Therefore, if you spam click your opponent before hitting first damage, you will initiate multiple timers
+		//Do nothing because you are already attacking
+		}
+		else if (element2.src.match("gifs/meleeatk.gif"))  //PROBLEM 1 (Alternate possible explanation): The problem could be that spam clicking will cause the setTimeout
+		{                                                  //timer code to repeat instances, causing multiple timers = multiple hits
+		//Do nothing because you are already attacking
+		dharokdmg = 50+Math.floor((100-hp1)/2);
+		} 
+	}
+ }
+}
+
+var defaultopacity = 1;
+var reflected;
+var chance;
+var stopcount = 0;
+var stopcount2 = 0;
+var player1killpoints=0; //Note, variables must be set outside of function for it to be called by another function
+var maxhitdrain = 0;
+var drainedmaxhit;
+var won;
+function setdmg2(maxhit) //Prevents additional action if hp2 is 0
+{
+ if (hp2 != 0)
+ {
+  element=document.getElementById("player2");
+  drainedmaxhit = maxhit;
+  if (monsterAbbreviation == "ele") {
+	  maxhitdrain++;
+	  if (maxhit >= 50) drainedmaxhit -= maxhitdrain;
+	  else drainedmaxhit -= Math.floor(maxhitdrain/4);
+  }
+  var rand = Math.floor(Math.random()*(drainedmaxhit+1));
+  if (maxhit >= 50 || monsterAbbreviation == "me" || monsterAbbreviation == "jad" || monsterAbbreviation == "nope" || monsterAbbreviation == "ogre" || monsterAbbreviation == "ele" || monsterAbbreviation == "brid")
+  {
+  	  if (monsterAbbreviation == "nope") {
+		if (hp2 <= 500) {
+			if (stopcount == 0) {
+				$("#msg").css({"opacity": defaultopacity});
+				document.getElementById("msg").innerHTML="&nbsp;Araxxor starts to get enraged."; 
+				gamemsg = setInterval(function () {
+					defaultopacity -= 0.002;
+					if (defaultopacity < -100) defaultopacity = 0; //To prevent non-stop decrementation
+					$("#msg").css({"opacity": defaultopacity});
+				}, 10);	
+				attackcount = 0;
+				stopatk2();
+				stopdmg2();
+				stopcount++;
+			}
+			phase = 2;
+			monsterTime = 1600;
+			monsterFirsthitTime = 1600; 
+			monsterMax = 33;
+			monsterDefenceRank = 2.4;
+		}		
+		if (hp2 <= 250) {
+			if (stopcount2 == 0) {	
+				defaultopacity = 1;
+				$("#msg").css({"opacity": defaultopacity});
+				document.getElementById("msg").innerHTML="&nbsp;Araxxor can now do an unavoidable cleave attack."; 	
+				stopcount2++;
+			}
+			phase = 3;
+			monsterAccuracyLevel = 10;
+			monsterDefenceRank = ThirdphaseDefRank;
+		}		
+	  }
+	  chance = Math.floor(Math.random()*(monsterDefenceRank-1));//Makes scimitar less accurate than 2h
+	  if (maxhit == 30 && monsterAbbreviation == "me") {
+		chance = Math.floor(Math.random()*(monsterDefenceRank+1.5));
+		if (hp2 < 40) rand = 0; //This is so ranged don't overpower "me"
+	  }
+	  if (chance == 0) rand = 0;
+	  if (monsterAbbreviation == "nope") reflected = rand;
+  }
+  if (rand >= hp2) //Sets what rand is based on hp2
+  {
+   rand = hp2;
+   if (hp2 == 0)//Prevents additional 0s that randomly appear
+   {
+   rand = null;
+   }
+  }
+  hp2 = hp2 - rand; //This line is the reason why "if (hp2==0)" appears twice
+   if (hp2 == 0)   //Prevents eating when dead
+   {
+	won = true;
+    if (typeof(jadheal) != 'undefined') clearInterval(jadheal);
+    player1killpoints += monsterKillPoint;
+	if (monsterAbbreviation == "me") player1killpoints = 2*player1killpoints;
+	document.getElementById("killsPVM").innerHTML=player1killpoints; 
+    stopatk1();
+	stopatk2();
+	setTimeout(function () //For some reason, stopdmg1() and stopdmg2() crashes if it does not hae a setTimeout
+	{
+	stopdmg1();    //PROBLEM 3: If player 1 doesn't activate its interval attack, then stopdmg1() crashes, disallowing stopdmg2(). 
+	stopdmg2();	   //Upon restart (hp != 0), the interval keeps going. For some reason the main function itself keeps going w/o crash.
+	}, 1);							 	
+    document.getElementById("player2").removeAttribute("onclick");	
+	allowattack = false;
+    setTimeout(function () 
+      {     
+	   $("#hphp2").css({"display": "none"});
+       element.src="gifs/" + monsterAbbreviation + "die.gif";	
+      }, 3000);
+	 setTimeout(function () 
+      {     
+       //element.src="gifs/player1wins.gif";	
+	   element.src="gifs/youwin.gif";
+	   $("#player2").css({"width": monsterWidth}); //Size reset at death animation for some reason, for KK
+	   $("#player2").css({"height": monsterHeight});
+	   $("#restart").css({"visibility": "visible"});
+      }, monsterDeathTime); //Was 5000
+   }
+  $("#redhp2").css({"height": 50 - hp2/2}); 
+  $("#hitsplat2").css({"visibility": "visible"});
+  if (rand == 0) 
+  {
+  $("#hitsplat2").css({"background-image": "url('images/dmg0.gif')"});
+  $(".singledigitdmg2").css({"display": "none"});
+  $(".leftsplathalf2").css({"display": "none"});
+  $(".rightsplathalf2").css({"display": "none"});
+  } 
+  else {$("#hitsplat2").css({"background-image": "url('images/dmg.gif')"});}//The else must be there for damages to not stay blue
+  if (rand < 10 && rand > 0) //Single digit damage number
+  { //dmg#-width,0-6,1-4,2-6,3-5,4-5,5-5,6-6,7-5,8-6,9-6,
+   $(".leftsplathalf2").css({"display": "none"});
+   $(".rightsplathalf2").css({"display": "none"});  
+   if (rand == 0 || rand == 2 || rand == 6 || rand == 8 || rand == 9)
+   {
+   $(".singledigitdmg2").attr("width", "6");  //Adjusting the gif width of the single digit number
+   $(".singledigitdmg2").css({"margin-left": "9px"}); //Adjusting the position of the single digit number
+   }
+   else if (rand == 3 || rand == 4 || rand == 5 || rand == 7)
+   {
+   $(".singledigitdmg2").attr("width", "5");
+   $(".singledigitdmg2").css({"margin-left": "9.5px"});
+   }
+   else 
+   {
+   $(".singledigitdmg2").attr("width", "4");
+   $(".singledigitdmg2").css({"margin-left": "10px"});
+   }
+   $(".singledigitdmg2").css({"display": ""});
+   $(".singledigitdmg2").attr("src", "images/" + rand + ".gif");
+  }
+  else if (rand >= 10)
+  {//dmg#-width,0-6,1-4,2-6,3-5,4-5,5-5,6-6,7-5,8-6,9-6,
+  leftdigit = Math.floor(rand / 10); //Split 2 digit damages to a left number and right number
+  rightdigit = rand % 10;
+  $(".singledigitdmg2").css({"display": "none"});
+  if (leftdigit == 0 || leftdigit == 2 || leftdigit == 6 || leftdigit == 8 || leftdigit == 9) //Adjusting the gif width of the number
+   {$(".leftsplathalf2").attr("width", "6");}
+  else if (leftdigit == 3 || leftdigit == 4 || leftdigit == 5 || leftdigit == 7)
+   {$(".leftsplathalf2").attr("width", "5");}
+  else {$(".leftsplathalf2").attr("width", "4");}
+  if (rightdigit == 0 || rightdigit == 2 || rightdigit == 6 || rightdigit == 8 || rightdigit == 9)
+   {$(".rightsplathalf2").attr("width", "6");}
+  else if (rightdigit == 3 || rightdigit == 4 || rightdigit == 5 || rightdigit == 7)
+   {$(".rightsplathalf2").attr("width", "5");}
+  else {$(".rightsplathalf2").attr("width", "4");}
+  $(".leftsplathalf2").css({"display": ""});
+  $(".leftsplathalf2").attr("src", "images/" + leftdigit + ".gif");
+  $(".rightsplathalf2").css({"display": ""});  
+  $(".rightsplathalf2").attr("src", "images/" + rightdigit + ".gif");
+  }
+  $("#greenhp2").css({"width": (hp2*monsterHPbarDRAINAGE)});
+  if (maxhit != 30) 
+  {
+	setTimeout(function () 
+	{     
+			//$("#dmgs").html("");//This must be set to nothing or else the latest damage will stay there
+			$(".singledigitdmg2").css({"display": "none"});
+			$(".leftsplathalf2").css({"display": "none"});
+			$(".rightsplathalf2").css({"display": "none"});
+			$("#hitsplat2").css({"visibility": "hidden"});
+	}, 2000);
+   }
+  // document.getElementById("dmgs").innerHTML=rand; //Old typed-in hit damages
+  }
+}
+
+function stopdmg1()
+{
+      setTimeout(function () 
+      {     
+	    $(".singledigitdmg2").css({"display": "none"}); //Making all damage number gifs and splats disappear
+		$(".leftsplathalf2").css({"display": "none"});
+		$(".rightsplathalf2").css({"display": "none"});
+	    $("#hitsplat2").css({"visibility": "hidden"});
+      }, 1700);
+	  if (typeof(firstdmg2) != 'undefined') clearTimeout(firstdmg2); //These timers may not be set so stopdmg would crash sometimes if this is put on top
+      if (typeof(dmg2) != 'undefined') clearInterval(dmg2); 
+	  //PROBLEMS WITHOUT IF STATEMENT(setdmg clearintervals crash if not activated):
+      //FIXED (hopefully): not making a splat to monster, eat -> won't stop attack animation
+      //FIXED (hopefully): clicking red square -> not making a splat to monster -> monster won't stop attacking if I die, 
+	  //latest damage splat stays on during death animation for drag
+} 
+
+//The auto fight code should not be put into a function because it will be initiated many times
+JadHealersAppear = false;
+var allowattack;
+allowattack = false;
+var cutsceneoff = true;
+var fightele = false;
+var healcount = 0;
+function autofight2() {
+	$("#selectmonster").css({"visibility": "hidden"});
+	$("#redbutton").css({"background-color": "green"});
+	document.getElementById("redbutton").removeAttribute("onclick");
+	if (monsterAbbreviation == "ele" && fightele == false) {
+		$("#info").css({"visibility": "hidden"});
+		var audio = document.getElementById("audioplayer")
+		$("audio").attr( "src", "audio/ele2.mp3" );
+		//audio.play() Originally, if Balance Elemental is "awakened", the new song used to automatically play
+		cutsceneoff = false;
+		monsterBackground = "url('images/bgeleCUTSCENE.gif')";
+		$("#game").css('background-image', monsterBackground);
+		$("#refillfood1").css({"visibility": "hidden"});
+		setTimeout(function () {
+			cutsceneoff = true;
+			monsterBackground = "url('images/bgele3.gif')";
+			$("#game").css('background-image', monsterBackground);
+			$("#player2div").css({"visibility": "visible"});
+			$("#player1div").css({"visibility": "visible"});
+			$("#info").css({"visibility": "visible"});
+			fightele = true;
+			autofight2();
+		}, 10160);	
+	}	
+	if (cutsceneoff) {
+		allowattack = true;
+		if (monsterAbbreviation == "jad" || monsterAbbreviation == "nope" || monsterAbbreviation == "brid") protectpray(); //This is placed here to make sure function is only activated once per fight
+																						  //With the ogre I simply check of prayer is mage. No need for this function
+		document.getElementById("jadmode").removeAttribute("onclick");
+		$('#player2').attr( "onclick", "attack1()" );
+		stopauto2 = self.setInterval(function () //Tightly polls the automated attacker to see if it's 0hp to prevent additional action
+		 {   
+		  //document.getElementById("test").innerHTML=attackcount;
+		  if (hp2 == 0) { 
+		   clearInterval(autoattack2); 
+		   clearInterval(stopauto2);
+		   clearInterval(autoeat2); 
+		  }
+		 },10);
+		autoattack2 = self.setInterval(function () 
+		 {   
+		  attack2();
+		  if (hp2 == 0) {
+		   clearInterval(autoattack2); 
+		   clearInterval(autoeat2);     
+		  }
+		 },1000);
+		autoeat2 = self.setInterval(function () 
+		 {
+		  if (monsterAbbreviation == "jad") {
+				if (!JadHealersAppear) {
+					  if (hp2 <= 125)
+					  {
+						$("#jadhealer1").css({"visibility": "visible"});
+						$("#jadhealer2").css({"visibility": "visible"});
+						$("#jadhealer3").css({"visibility": "visible"});
+						$("#jadhealer4").css({"visibility": "visible"});
+						RandMargGen1 = 200+(Math.random()*30); RandMargGen2 = 200+(Math.random()*30);
+						RandMargGen3 = 200 + (Math.random()*150); RandMargGen4 = 200 + (Math.random()*150);
+						RandMargGen5 = (Math.random()*280); RandMargGen6 = 300 + (Math.random()*110);
+						RandMargGen7 = (Math.random()*280); RandMargGen8 = 300 + (Math.random()*110);
+						$("#jadhealer1").css({"margin-top": RandMargGen1});
+						$("#jadhealer2").css({"margin-top": RandMargGen2});
+						$("#jadhealer3").css({"margin-top": RandMargGen3});
+						$("#jadhealer4").css({"margin-top": RandMargGen4});
+						$("#jadhealer1").css({"margin-left": RandMargGen5});
+						$("#jadhealer2").css({"margin-left": RandMargGen6});
+						$("#jadhealer3").css({"margin-left": RandMargGen7});
+						$("#jadhealer4").css({"margin-left": RandMargGen8});			  
+						 JadHealersAppear = true;
+						 jadheal = self.setInterval("jadhealfunc()",1000);	
+					  }
+				}
+				else if (healersalive == 0) clearInterval(jadheal);
+		  } 
+		  if (monsterAbbreviation == "me") {
+			  if (hp2 <= 50)
+			  {
+				 hp2+=20; 
+				 $("#greenhp2").css({"width": (hp2*monsterHPbarDRAINAGE)});
+			  }
+		  }
+		  if (monsterAbbreviation == "brid") {
+			  if (hp2 <= 100)
+			  {
+				 if (healcount <= 13) hp2+=50; 
+				 healcount++;
+				 $("#greenhp2").css({"width": (hp2*monsterHPbarDRAINAGE)});
+			  }
+		  }
+		 },3000);
+	 }
+}
+
+var clickcount = 0;
+var allowphaseskipp = false;
+function allowphaseskip() {
+	clickcount++;
+	if (clickcount >= 5) {
+		allowphaseskipp = true;
+		$("#wooxmode").css({"display": ""});
+		$("#setHpto1").css({"display": ""});
+		clickcount = 0;
+	}
+}
+function phaseskip () { //Don't do this when cacooned because this will skip the step which sets player1frozen gif back to default invisible gif
+	if (monsterAbbreviation == "nope" && allowphaseskipp) {
+		if (hp2 > 250) {
+			notfrozen = true;
+			hp2 -= 250;
+		}
+	}
+}
+function sethpto1() //Only used for development purposes, can be very glitchy if abused
+{
+	if (hp1 >= 1) hp1 = 1;
+	document.getElementById("hpcount1").innerHTML=hp1;//Note: Always make sure that the logic is correct before outputting
+	$("#redhp1").css({"height": 50 - hp1/2}); 
+	$("#greenhp1").css({"width": (hp1*10/33)});
+}
+
+function wooxmode() { 
+	if (praypoint >= 1) praypoint = 1;
+	document.getElementById("praycount1").innerHTML=Math.round(praypoint); 
+	document.getElementById("praycountinven").innerHTML=Math.round(praypoint); 
+	$("#bluepray1").css({"height": 50 - praypoint*5/4}); 	 
+}
+</script>
+<audio id="audioplayer" controls loop>
+  <source src="audio/ogre.mp3" type="audio/mpeg">
+</audio>
+<p id="musicmsg" style="margin-top:-30px;margin-left:320px">Click music tab to show/hide music player.</p>
+<script>
+var music_one = true;
+var musicbutton = document.getElementById("musicButton");
+$("audio").css({"display": "none"});
+$("#musicmsg").css({"display": "none"});
+function togglemusic() {
+	var musicbutton = document.getElementById("musicButton");
+	if (musicbutton.src.match("images/soundon.png")) {
+		$("#musicButton").attr( "src", "images/soundoff.png" );
+		$("audio").css({"display": "none"});
+		$("#musicmsg").css({"display": "none"});
+	}
+	else {
+		$("#musicButton").attr( "src", "images/soundon.png" );
+		$("audio").css({"display": ""});
+		$("#musicmsg").css({"display": ""});
+	}
+}
+</script>
+<div id="container">
+<div id="game">
+  <p id="msg" style="color:#F5A2A2;position:absolute;margin-left:200px;"></p>
+  <div id="player1div">
+        <div id="prayerOverheadDiv"><img id="prayOverhead" style="z-index:-1"></img></div>
+        <div id="hphp1">
+            <div id="greenhp1">
+            </div>
+        </div>
+		<div id="hitsplat1" >
+		    <img class="singledigitdmg1" height="9" style="margin-top:6px;"></img>
+            <div id="leftdmghalf1"><img class="leftsplathalf1" height="9" style="float:right;margin-top:6px;"></img></div>            
+		    <div id="rightdmghalf1"><img class="rightsplathalf1" height="9" style="float:left;margin-top:6px;"></img></div>
+        <!--dmg#-width,0-6,1-4,2-6,3-5,4-5,5-5,6-6,7-5,8-6,9-6,--><!--31--src="images/3.gif"width="5"--src="images/1.gif"width="4" height="9"-->
+        </div>
+        <img id="player1"  src="gifs/rangestand.gif" ></img><!--Import CSS does not work for gifs-->
+		<img id="player1frozen" style="position:absolute;margin-top:-140px;z-index:1;" src="gifs/invisible.gif"></img>
+  </div>
+  <div id="player2div">
+        <div id="hphp2">
+            <div id="greenhp2">
+            </div>
+        </div>
+		<div id="hitsplat2" >
+		    <img class="singledigitdmg2" height="9" style="margin-top:6px;"></img>
+            <div id="leftdmghalf2"><img class="leftsplathalf2" height="9" style="float:right;margin-top:6px;"></img></div>            
+		    <div id="rightdmghalf2"><img class="rightsplathalf2" height="9" style="float:left;margin-top:6px;"></img></div>
+        <!--dmg#-width,0-6,1-4,2-6,3-5,4-5,5-5,6-6,7-5,8-6,9-6,--><!--31--src="images/3.gif"width="5"--src="images/1.gif"width="4" height="9"-->
+        </div>
+        <!--p id = "dmgs"></p-->
+        <!--For pvm: both pic below were width:92px;height:200px;-->
+		<img id="player2" src ="gifs/ogrestand.gif" ></img><!--Import CSS does not work for gifs-->
+ </div>
+ <div><!--Div wrapper is required to prevent messed up margin-top of monsters due to a new Chrome update-->
+	 <p class="score">Foods eaten: <span id="foodseatenPVM">0</span></p><br>  
+	 <p class="score">Refills: <span id="refillsPVM">0</span></p><br>                   
+	 <p class="score">Kill points: <span id="killsPVM">0</span></p><br>
+	 <p class="score">Deaths: <span id="deathsPVM">0</span></p><br>
+	 <p id="info" onclick="getMonsterInfo()">&nbsp;Info&nbsp;</p><br>
+	 <p id="jadmode" onclick="toggleJadMode()" style="visibility:hidden;">&nbsp;<span id="jadmode2">Normal</span> mode&nbsp;</p><br>
+	  <p class="score" id="setHpto1" style="display:none" onclick="sethpto1()">SET HP TO 1</p>
+  </div>
+ <div><img class="jadhealer" onclick="killhealer(1)" id="jadhealer1" style="margin-top:0px;margin-left:90px;"src="images/jadhealer.png"></img></div><!--MT: 0-150, ML: 0-90-->
+ <div><img class="jadhealer" onclick="killhealer(2)" id="jadhealer2" style="margin-top:150px;margin-left:220px;"src="images/jadhealer.png"></img></div><!--MT: 0-150, ML: 110-220-->
+ <div><img class="jadhealer" onclick="killhealer(3)" id="jadhealer3" style="margin-top:270px;margin-left:280px;"src="images/jadhealer.png"></img></div><!--MT: 270-350, ML: 0-280-->
+ <div><img class="jadhealer" onclick="killhealer(4)" id="jadhealer4" style="margin-top:350px;margin-left:570px;"src="images/jadhealer.png"></img></div><!--MT: 270-350, ML: 300-570-->
+</div>
+<div id="player1hp">
+  <div id="hpdiv1">
+        <div id="redhp1"><p align="center" id="hpcount1" style="color:white;">99</p></div> 		
+  </div>
+  <div id="praydiv1">
+        <div id="bluepray1"><p align="center" id="praycount1" style="color:white;">40</p></div> 
+  </div>
+  <p id="refillfood1" onclick="refill1()">&nbsp;Refill food&nbsp;<span id="wooxmode" style="display:none" onclick="wooxmode()">&nbsp;1Pray&nbsp;</span></p> <!--WM means Woox mode-->
+  <p id="selectmonster"><span onclick="setmonster('ogre')">0&nbsp;</span><span onclick="setmonster('bird')">1&nbsp;</span><span onclick="setmonster('imp')">2&nbsp;</span><span onclick="setmonster('jad')">3&nbsp;</span><span onclick="setmonster('drag')">4&nbsp;</span><span onclick="setmonster('kk')">5&nbsp;</span><span onclick="setmonster('nope')">6&nbsp;</span><span onclick="setmonster('ele')">X&nbsp;</span><span onclick="setmonster('brid')">Y&nbsp;</span><span onclick="setmonster('me')">Z</span></p>
+</div>
+<div id="invenOuterBox1">
+  <img id="invenButton" onmousedown="showtab('inven')" style="margin-left:19px" width="40.96" height="46.08" src="images/invenSel.PNG"></img><!--ML 19-14 for MOB-->
+  <img id="prayButton" onmousedown="showtab('pray')" style="margin-left:39px" width="42.24" height="46.08" src="images/prayUnsel.PNG"></img>
+  <div id="redbutton" style="width:50px;height:20px;background-color:red;float:left;cursor:pointer;" onclick="autofight2()">FIGHT</div>
+  <p id="restart" onclick="restart();restart2();restart3();restart4();">&nbsp;Restart&nbsp;</p>
+  <div id="invenInnerBox1">
+     <img id="2h1" width="53.76px" height="39.68px" class="item1" onclick="weaponswitch1()" src="images/dharoks.png"></img><!--Image class cannot have a number inside-->
+     <script>
+	 for (var i=1;i<=5;i++)
+     {
+		$("#invenInnerBox1").append("<img id='fastfood1" + i + "' class='item1' onclick='fasteat1(" + i + ")' width='57.6px' height='39.68px' src='images/foodPVM2.png'></img>"); 
+     }
+     for (var i=6;i<=27;i++)
+     {
+		$("#invenInnerBox1").append("<img id='food1" + i + "' class='item1' onclick='eatfood1(" + i + ")' width='57.6px' height='39.68px' src='images/foodPVM.png'></img>"); 
+     }//Google Chrome sometimes gets onclick and id mixed up, which is why the function became eatfood1() and not food1()
+     var refills1 = 0;
+     function refill1()
+     {
+	     if (monsterAbbreviation == "brid") $("#refillfood1").css({"visibility": "hidden"});
+		 refills1 += 1;
+		 document.getElementById("refillsPVM").innerHTML=refills1;
+		 for (var i=6;i<=27;i++)
+		 {
+			$("#food1" + i).css({"visibility": "visible"});
+		 }
+     }
+     function refill_at_restart() //Refill button gets enabled again after disable for "brid" and "ele" monsters
+     {
+		 refill1();
+		 $("#refillfood1").css({"visibility": "visible"});
+     }
+     </script>
+ </div>
+ <div id="prayInnerBox1">
+ <img id="magepray" style="margin-top:145px;margin-left:47px;" src="images/mageprayoff.png" onmousedown="togglepray('mage')"></img>
+ <img id="rangepray" style="margin-top:145px;margin-left:-4px;"  src="images/rangeprayoff.png" onmousedown="togglepray('range')"></img>
+ <p style="color:#F6C46F;margin-top:98px;margin-left:105px;"><span id="praycountinven">40</span> / 40</p>
+ </div>
+ <div style="background-color:transparent;width:20px;height:20px;margin-top:310px;margin-left:90px" onclick="phaseskip()"></div> <!--Invisible cheat button-->
+ <img id ="musicButton" style="float:right;margin-top:3px;margin-right:5px" src="images/soundoff.png" onclick="togglemusic()"></img>
+ <div style="background-color:invisible;width:20px;height:20px;margin-top:10px;margin-left:240px" onclick="allowphaseskip()"></div>
+</div>
+
+</div>
+</div>
+</body>
+<div id = "test"></div>
+</html>

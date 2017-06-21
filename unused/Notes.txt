@@ -1,0 +1,1 @@
+the 1.28 in name was because the inventory image was resized to 128% of the original size
